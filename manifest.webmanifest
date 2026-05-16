@@ -2,7 +2,7 @@
   "name": "Cooler Duty",
   "short_name": "CoolerDuty",
   "description": "Hostel cooler duty timer, reminders, alarms, and check-ins.",
-  "start_url": "./index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#0f766e",
