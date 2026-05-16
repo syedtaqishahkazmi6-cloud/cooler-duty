@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A hostel cooler duty web app with turn timer, admin reminders, alarms, and roommate check-ins."
+    />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Cooler Duty</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./firebase-config.js"></script>
+    <script defer src="./icons.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#dashboard" aria-label="Cooler Duty dashboard">
+          <span class="brand-mark" aria-hidden="true">CD</span>
+          <span>
+            <strong>Cooler Duty</strong>
+            <small>Hostel Room</small>
+          </span>
+        </a>
+
+        <div class="top-actions">
+          <label class="identity-picker">
+            <span>My Screen</span>
+            <select id="personSelect" aria-label="Select your screen name"></select>
+          </label>
+          <button class="icon-button" id="soundToggle" type="button" title="Enable alarm sound">
+            <i data-lucide="volume-2" aria-hidden="true"></i>
+            <span>Sound</span>
+          </button>
+          <button class="icon-button ghost hidden" id="installBtn" type="button" title="Install app">
+            <i data-lucide="download" aria-hidden="true"></i>
+            <span>Install</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="dashboard-band" id="dashboard" aria-labelledby="dashboardTitle">
+          <div class="dashboard-copy">
+            <p class="eyebrow" id="connectionStatus">Local demo mode</p>
+            <h1 id="dashboardTitle">Cooler duty command screen</h1>
+            <div class="clock-row">
+              <span id="dateLabel">Loading date</span>
+              <strong id="clockLabel">00:00:00</strong>
+            </div>
+          </div>
+
+          <div class="turn-panel" data-testid="turn-panel">
+            <div class="turn-head">
+              <span class="status-pill" id="turnStatus">Today</span>
+              <span id="turnWindow">12:00 AM to 12:00 AM</span>
+            </div>
+            <div class="turn-main">
+              <div class="timer-ring" id="timerRing" aria-label="Turn progress">
+                <span id="countdownLabel">00:00:00</span>
+              </div>
+              <div>
+                <span class="mini-label" id="turnDayLabel">Today</span>
+                <h2 id="currentPerson">Loading</h2>
+                <p id="turnNote">Checking the roster.</p>
+              </div>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <span id="dayProgress"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="work-grid" aria-label="Cooler duty workspace">
+          <article class="panel current-actions">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">My Turn</p>
+                <h2>Action Desk</h2>
+              </div>
+              <span class="status-dot" id="myStatusDot">Ready</span>
+            </div>
+
+            <div class="cooler-meter" aria-label="Cooler water level">
+              <div class="cooler-visual">
+                <div class="water-fill" id="waterFill"></div>
+                <span id="waterPercent">72%</span>
+              </div>
+              <div class="meter-controls">
+                <label for="waterLevel">Cooler Level</label>
+                <input id="waterLevel" type="range" min="0" max="100" step="1" value="72" />
+                <div class="level-tags">
+                  <span>Empty</span>
+                  <span>Full</span>
+                </div>
+              </div>
+            </div>
+
+            <label class="field">
+              <span>My Status</span>
+              <select id="statusSelect">
+                <option value="Ready">Ready</option>
+                <option value="In class">In class</option>
+                <option value="Out">Out</option>
+                <option value="Sleeping">Sleeping</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Check-in Note</span>
+              <input id="checkinNote" type="text" maxlength="80" placeholder="Filled before dinner" />
+            </label>
+
+            <div class="button-row">
+              <button class="primary-btn" id="markFilled" type="button">
+                <i data-lucide="check-circle-2" aria-hidden="true"></i>
+                <span>Mark Filled</span>
+              </button>
+              <button class="danger-btn" id="sendSos" type="button">
+                <i data-lucide="siren" aria-hidden="true"></i>
+                <span>SOS</span>
+              </button>
+            </div>
+
+            <div class="swap-box">
+              <label class="field">
+                <span>Swap With</span>
+                <select id="swapTarget"></select>
+              </label>
+              <label class="field">
+                <span>Reason</span>
+                <input id="swapReason" type="text" maxlength="80" placeholder="Lab, travel, exam" />
+              </label>
+              <button class="secondary-btn" id="requestSwap" type="button">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                <span>Request Swap</span>
+              </button>
+            </div>
+          </article>
+
+          <article class="panel schedule-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Roster</p>
+                <h2>Weekly Turns</h2>
+              </div>
+              <span class="status-pill muted">Monday Off</span>
+            </div>
+            <div class="schedule-grid" id="scheduleGrid"></div>
+          </article>
+
+          <article class="panel board-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Live Board</p>
+                <h2>Room Updates</h2>
+              </div>
+              <button class="text-button" id="clearSeen" type="button">Seen</button>
+            </div>
+            <div class="message-list" id="messageList"></div>
+          </article>
+
+          <article class="panel admin-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Admin</p>
+                <h2>Reminder Control</h2>
+              </div>
+              <span class="status-pill" id="adminState">Locked</span>
+            </div>
+
+            <div id="adminLock" class="admin-lock">
+              <label class="field">
+                <span>Admin PIN</span>
+                <input id="adminPin" type="password" inputmode="numeric" placeholder="Enter PIN" />
+              </label>
+              <button class="primary-btn" id="unlockAdmin" type="button">
+                <i data-lucide="lock-keyhole-open" aria-hidden="true"></i>
+                <span>Unlock</span>
+              </button>
+            </div>
+
+            <div id="adminControls" class="admin-controls hidden">
+              <label class="field">
+                <span>Reminder Message</span>
+                <textarea
+                  id="adminMessage"
+                  maxlength="180"
+                  rows="4"
+                  placeholder="Cooler is low. Please fill it now."
+                ></textarea>
+              </label>
+
+              <div class="template-row" id="templateRow">
+                <button type="button" data-template="Cooler is low. Please fill it now.">Low Water</button>
+                <button type="button" data-template="Please complete duty before dinner.">Before Dinner</button>
+                <button type="button" data-template="Mark filled after completing the cooler.">Check-in</button>
+              </div>
+
+              <div class="button-row">
+                <button class="primary-btn" id="sendBroadcast" type="button">
+                  <i data-lucide="megaphone" aria-hidden="true"></i>
+                  <span>Broadcast</span>
+                </button>
+                <button class="danger-btn" id="sendAlarm" type="button">
+                  <i data-lucide="bell-ring" aria-hidden="true"></i>
+                  <span>Turn Alarm</span>
+                </button>
+              </div>
+
+              <div class="swap-list" id="swapList"></div>
+            </div>
+          </article>
+
+          <article class="panel status-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Crew</p>
+                <h2>Roommate Status</h2>
+              </div>
+            </div>
+            <div class="status-grid" id="statusGrid"></div>
+          </article>
+
+          <article class="panel score-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Proof</p>
+                <h2>Scoreboard</h2>
+              </div>
+            </div>
+            <div class="score-grid" id="scoreGrid"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div class="alarm-overlay hidden" id="alarmOverlay" role="dialog" aria-modal="true">
+      <div class="alarm-card">
+        <span class="alarm-icon"><i data-lucide="bell-ring" aria-hidden="true"></i></span>
+        <p class="eyebrow">Turn Alarm</p>
+        <h2 id="alarmTitle">Your cooler turn is active</h2>
+        <p id="alarmText">Please fill the cooler now.</p>
+        <button class="primary-btn" id="ackAlarm" type="button">
+          <i data-lucide="check" aria-hidden="true"></i>
+          <span>Acknowledge</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
